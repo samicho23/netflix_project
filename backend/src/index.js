@@ -1,38 +1,96 @@
 const express = require('express');
+const { Sequelize, DataTypes } = require('sequelize');
 const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken'); 
 
 const app = express();
-
-// የፖርት እና የኔትወርክ መፍቀጃ (CORS)
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
-// ለኔትፍሊክስ ክሎን የሚሆን የፊልሞች ዳታ (Mock Data)
-const moviesData = {
-  trending: [
-    { id: 1, title: "Stranger Things", backdrop_path: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=800", overview: "When a young boy vanishes, a small town uncovers a mystery involving secret experiments." },
-    { id: 2, title: "Wednesday", backdrop_path: "https://images.unsplash.com/photo-1509281373149-e957c6296406?q=80&w=800", overview: "Smart, sarcastic and a little dead inside, Wednesday Addams investigates a murder spree." }
-  ],
-  topRated: [
-    { id: 3, title: "The Witcher", backdrop_path: "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=800", overview: "Geralt of Rivia, a mutated monster-hunter for hire, journeys toward his destiny." },
-    { id: 4, title: "Extraction 2", backdrop_path: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800", overview: "Back from the brink of death, highly skilled commando Tyler Rake takes on another dangerous mission." }
-  ],
-  action: [
-    { id: 5, title: "Die Hard", backdrop_path: "https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=800", overview: "An NYPD officer tries to save his wife and several others taken hostage by German terrorists." }
-  ]
-};
+// 1.  (Sequelize)
+const sequelize = new Sequelize(
+  process.env.DB_NAME || 'netflix_db',
+  process.env.DB_USER || 'root', 
+  process.env.DB_PASSWORD || 'password',
+  {
+    host: process.env.DB_HOST || 'netflix_mysql',
+    dialect: 'mysql',
+    logging: false, 
+  }
+);
 
-// API Endpoints
-app.get('/api/movies/trending', (req, res) => res.json({ results: moviesData.trending }));
-app.get('/api/movies/top-rated', (req, res) => res.json({ results: moviesData.topRated }));
-app.get('/api/movies/action', (req, res) => res.json({ results: moviesData.action }));
-
-// ዋናው ሰርቨር መነሻ ገጽ
-app.get('/', (req, res) => {
-  res.send('Netflix Backend API is running successfully!');
+// 2. (User Model)
+const User = sequelize.define('User', {
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+    validate: { isEmail: true }
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false
+  }
 });
 
-const PORT = process.env.PORT || 5000;
+// 
+async function connectWithRetry() {
+  console.log('🔄 Attempting to connect to MySQL database...');
+  try {
+    await sequelize.sync();
+    console.log('🐬 MySQL Database & Tables Synced Successfully!');
+  } catch (err) {
+    console.error('❌ Database connection failed. Retrying in 5 seconds...', err.message);
+    setTimeout(connectWithRetry, 5000); 
+  }
+}
+
+connectWithRetry();
+
+// 3.  (Sign Up Route)
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    const userExists = await User.findOne({ where: { email } });
+    if (userExists) return res.status(400).json({ message: 'user already exists' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await User.create({ email, password: hashedPassword });
+
+    res.status(201).json({ success: true, message: 'User registered successfully!' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error during registration' });
+  }
+});
+
+// 4.  (Login Route)
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(400).json({ message: 'የተሳሳተ ኢሜይል ወይም ፓስወርድ!' });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ message: 'የተሳሳተ ኢሜይል ወይም ፓስወርድ!' });
+
+    // 🔑 Token 
+    const token = jwt.sign({ id: user.id }, 'NETFLIX_SUPER_SECRET_KEY', { expiresIn: '1d' });
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'Login successful!', 
+      email: user.email,
+      token: token 
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error during login' });
+  }
+});
+
+const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Node.js Backend Server is running on port ${PORT}`);
 });

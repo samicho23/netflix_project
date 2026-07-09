@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:18
 
 WORKDIR /app
 
@@ -10,5 +10,4 @@ COPY . .
 
 EXPOSE 3000
 
-# Create React App ፈንታ Vite ን በፖርት 3000 እንዲያነሳው ያደርጋል
 CMD ["npm", "run", "dev", "--", "--host"]

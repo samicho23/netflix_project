@@ -1,30 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../../utils/axios';
+import YouTube from 'react-youtube';
+import movieTrailer from 'movie-trailer';
 import './Row.css';
 
-function Row({ title, fetchUrl }) {
+function Row({ title, fetchUrl, isLargeRow }) {
   const [movies, setMovies] = useState([]);
+  const [trailerUrl, setTrailerUrl] = useState("");
 
   useEffect(() => {
     async function fetchData() {
       const request = await axios.get(fetchUrl);
-      setMovies(request.data.results);
-      return request;
+      setMovies(request.data.results || []);
     }
     fetchData();
   }, [fetchUrl]);
 
+  const handleClick = (movie) => {
+    if (trailerUrl) {
+      setTrailerUrl("");
+    } else {
+      movieTrailer(movie?.title || movie?.name || movie?.original_name || "")
+        .then((url) => {
+          const urlParams = new URLSearchParams(new URL(url).search);
+          setTrailerUrl(urlParams.get("v"));
+        })
+        .catch((error) => console.log("Trailer ማግኘት አልተቻለም፦ ", error));
+    }
+  };
+
+  const opts = {
+    height: "390",
+    width: "100%",
+    playerVars: {
+      autoplay: 1,
+    },
+  };
+
+  const base_url = "https://image.tmdb.org/t/p/original/";
+
   return (
     <div className="row">
       <h2>{title}</h2>
-      <div className="row_posters">
-        {movies.map(movie => (
-          <div key={movie.id} className="row_poster_container">
-            <img className="row_poster" src={movie.backdrop_path} alt={movie.title} />
-            <p className="movie_name">{movie.title}</p>
-          </div>
+      <div className="row__posters">
+        {movies.map((movie) => (
+          <img
+            key={movie.id}
+            onClick={() => handleClick(movie)} 
+            className={`row__poster ${isLargeRow && "row__posterLarge"}`}
+            src={`${base_url}${isLargeRow ? movie.poster_path : movie.backdrop_path}`}
+            alt={movie.name}
+          />
         ))}
       </div>
+      {trailerUrl && <YouTube videoId={trailerUrl} opts={opts} />}
     </div>
   );
 }

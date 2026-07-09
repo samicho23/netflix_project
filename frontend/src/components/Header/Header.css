@@ -3,20 +3,39 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  background-color: #111;
   position: fixed;
-  width: 100%;
   top: 0;
+  width: 100%;
+  height: 30px;
+  background-color: #111;
   z-index: 1;
 }
-.header_logo {
-  color: #e50914;
-  font-weight: bold;
-  letter-spacing: 1px;
+
+.header__left {
+  display: flex;
+  align-items: center;
 }
-.header_nav span {
-  margin-right: 20px;
-  color: white;
+
+.header__logo {
+  width: 100px; /* 👈 ሎጎው እንዳይገዝፍ መጠኑን እዚህ እንገድበዋለን */
+  object-fit: contain;
+  margin-right: 25px;
   cursor: pointer;
+}
+
+.header__nav {
+  display: flex;
+  gap: 20px;
+}
+
+.header__link {
+  color: white !important;
+  text-decoration: none !important;
+  font-weight: fill;
   font-size: 14px;
+  transition: color 0.3s;
+}
+
+.header__link:hover {
+  color: #e50914;
 }

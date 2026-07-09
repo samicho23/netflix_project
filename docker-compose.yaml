@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  backend:
+  netflix_backend_api:
     build: ./backend
     container_name: netflix_backend_api
     ports:
@@ -9,8 +9,15 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+    environment:
+      - DB_HOST=netflix_mysql_db
+      - DB_USER=netflix_user
+      - DB_PASSWORD=netflix_pass
+      - DB_NAME=netflix_db
+    depends_on:
+      - netflix_mysql_db
 
-  frontend:
+  netflix_frontend_ui:
     build: ./frontend
     container_name: netflix_frontend_ui
     ports:
@@ -18,6 +25,23 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    stdin_open: true
+    depends_on:
+      - netflix_backend_api
+
+  # 👇 አዲሱ የ MySQL ዳታቤዝ አገልግሎት
+  netflix_mysql_db:
+    image: mysql:8.0
+    container_name: netflix_mysql
+    restart: always
     environment:
-      - CHOKIDAR_USEPOLLING=true
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: netflix_db
+      MYSQL_USER: netflix_user
+      MYSQL_PASSWORD: netflix_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
