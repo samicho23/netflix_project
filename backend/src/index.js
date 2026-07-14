@@ -1,3 +1,4 @@
+require('dotenv').config(); // 👈 1. መጀመሪያ የ .env ፋይሉን እንዲያነብ ማድረግ
 const express = require('express');
 const { Sequelize, DataTypes } = require('sequelize');
 const cors = require('cors');
@@ -8,19 +9,20 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 1.  (Sequelize)
+// 2. በብልሃት መረጃዎችን ከ .env መሳብ
 const sequelize = new Sequelize(
   process.env.DB_NAME || 'netflix_db',
   process.env.DB_USER || 'root', 
   process.env.DB_PASSWORD || 'password',
   {
-    host: process.env.DB_HOST || 'netflix_mysql',
+    // 💡 እዚህ ጋር ከዶከር ሰርቪስ ስም ጋር እንዲገጥም netflix_mysql_db ተደርጓል
+    host: process.env.DB_HOST || 'netflix_mysql_db', 
     dialect: 'mysql',
     logging: false, 
   }
 );
 
-// 2. (User Model)
+// User Model
 const User = sequelize.define('User', {
   email: {
     type: DataTypes.STRING,
@@ -34,7 +36,7 @@ const User = sequelize.define('User', {
   }
 });
 
-// 
+// Database Sync with Retry Logic
 async function connectWithRetry() {
   console.log('🔄 Attempting to connect to MySQL database...');
   try {
@@ -48,7 +50,7 @@ async function connectWithRetry() {
 
 connectWithRetry();
 
-// 3.  (Sign Up Route)
+// Sign Up Route
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -65,7 +67,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// 4.  (Login Route)
+// Login Route
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -76,8 +78,9 @@ app.post('/api/auth/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: 'የተሳሳተ ኢሜይል ወይም ፓስወርድ!' });
 
-    // 🔑 Token 
-    const token = jwt.sign({ id: user.id }, 'NETFLIX_SUPER_SECRET_KEY', { expiresIn: '1d' });
+    // 🔑 ቶከን መፍጠሪያ ሚስጥሩን ከ .env ውስጥ መሳብ (Fallback ቁልፍ ተጨምሯል)
+    const secretKey = process.env.JWT_SECRET || 'DEFAULT_BACKUP_SECRET_KEY';
+    const token = jwt.sign({ id: user.id }, secretKey, { expiresIn: '1d' });
 
     res.status(200).json({ 
       success: true, 
@@ -90,7 +93,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Node.js Backend Server is running on port ${PORT}`);
 });

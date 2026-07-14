@@ -1,0 +1,12 @@
+# የኮምፒውተርህን node_modules ወደ ዶከር እንዳይገለበጥ ይከለክላል
+node_modules/
+npm-debug.log
+
+# የ Git ታሪክ ማህደሮች በዶከር ውስጥ አያስፈልጉም
+.git/
+.gitignore
+
+# የዶከር ግንባታ ፋይሎች ራሳቸው
+Dockerfile
+docker-compose.yml
+README.md

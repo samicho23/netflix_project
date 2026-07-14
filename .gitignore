@@ -1,0 +1,12 @@
+# የደህንነት ፋይል (ይህ እንዳይጫን በጣም ወሳኝ ነው!)
+.env
+
+# ከባድ የሆኑ የኖድ ጥቅሎች (Packages)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 
+.DS_Store
+Thumbs.db

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+// ❌ የድሮው አክሲዮስ ጠፍቷል፦ import axios from 'axios';
+import backendAxios from '../../utils/backendAxios'; // 👈 1. አዲሱን ስማርት ፋይል ጠራነው
 
 function AuthForm({ isLoginModeInit }) {
   const [isLogin, setIsLogin] = useState(isLoginModeInit);
@@ -13,18 +14,21 @@ function AuthForm({ isLoginModeInit }) {
     e.preventDefault();
     setError('');
     
+    // 👈 2. ረጅሙን የባክኤንድ ሊንክ አጥፍተን የመጨረሻዋን በር (Endpoint) ብቻ አስቀመጥን
     const endpoint = isLogin 
-      ? "http://localhost:5000/api/auth/login" 
-      : "http://localhost:5000/api/auth/register";
+      ? "/api/auth/login" 
+      : "/api/auth/register";
 
     try {
-      const response = await axios.post(endpoint, { email, password });
+      // 👈 3. በ 'axios.post' ፈንታ 'backendAxios.post' ብለን ጥሪ አደረግን
+      const response = await backendAxios.post(endpoint, { email, password });
+      
       if (response.data.success) {
         if (isLogin) {
           localStorage.setItem('token', response.data.token);
           navigate('/browse'); 
         } else {
-          alert('user registered successfully! please login tocontinue');
+          alert('user registered successfully! please login to continue');
           setIsLogin(true);
         }
       }
