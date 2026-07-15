@@ -52,3 +52,4 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/netflix-backend:latest
+
