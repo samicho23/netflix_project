@@ -1,13 +1,11 @@
-
-# Rebuilding after updating secrets
-# Trigger pipeline rebuild
+# Fresh rebuild with correct formatting
 name: CI/CD Netflix Production Pipeline
 
 on:
   pull_request:
-    branches: [ master ] 
+    branches: [ master ]
   push:
-    branches: [ master ] 
+    branches: [ master ]
 
 jobs:
   # 1. መጀመሪያ ኮዱን መፈተሽ (Lint & Test)
@@ -45,11 +43,8 @@ jobs:
 
       - name: Build and Push Backend Image
         uses: docker/build-push-action@v5
-
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/netflix-backend:latest
-
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/netflix-backend:latest
