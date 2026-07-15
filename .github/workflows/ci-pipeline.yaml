@@ -2,7 +2,7 @@ name: CI/CD Netflix Production Pipeline
 
 on:
   push:
-    branches: [ master ] # pull_request የሚለውን በማስወገድ Secrets በትክክል እንዲነበቡ እናደርጋለን
+    branches: [ master ]
 
 jobs:
   # 1. መጀመሪያ ኮዱን መፈተሽ (Lint & Test)
@@ -34,13 +34,13 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: samicho23 # 👈 የ Docker username በቀጥታ እዚህ በማስገባት "Username required" ስህተትን ለዘላለም እንፈታዋለን
+          username: samicho23
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and Push Backend Image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./Dockerfile
+          context: ./backend   
+          file: ./backend/Dockerfile 
           push: true
           tags: samicho23/netflix-backend:latest
