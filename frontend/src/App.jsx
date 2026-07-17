@@ -7,7 +7,7 @@ import Banner from './components/Banner/Banner';
 import requests from './utils/requests';
 
 function BrowseHome() {
-  // 🔒 የደህንነት ማረጋገጫ፡ ሎግኢን ካላደረገ ወደ መግቢያ ገጽ ይመልሰዋል
+  // check if the user is authenticated by checking for a token
   const token = localStorage.getItem('token');
   if (!token) {
     return <Navigate to="/" />;
