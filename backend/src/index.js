@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 2. በብልሃት መረጃዎችን ከ .env መሳብ
+
 const sequelize = new Sequelize(
   process.env.DB_NAME || 'netflix_db',
   process.env.DB_USER || 'root', 
