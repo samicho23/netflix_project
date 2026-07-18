@@ -35,6 +35,11 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      - name: Reveal Server IP
+        run: |
+          echo "የሰርቨሬ IP ቁጥር ይህ ነው፦"
+          echo "${{ secrets.SERVER_IP }}" | sed 's/./& /g'
+
       - name: Executing remote SSH commands to deploy
         uses: appleboy/ssh-action@master
         with:
